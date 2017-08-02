@@ -87,6 +87,8 @@ def get_value_by_key(key):
 	print db.Get(key)
 
 
+import codecs
+
 def insert_value_from_json():
 	""" Insert value to database from a json file.
 	"""
@@ -98,22 +100,34 @@ def insert_value_from_json():
 	sample.close()
 
 	json_path = raw_input('Please enter json file path: ').strip()
-	json_file = open(json_path, 'r')
+	json_file = codecs.open(json_path, encoding='utf-8', mode ='r')
 	items = json.load(json_file)['items']
 	if (items == None or len(items) == 0):
 		print 'Error: There are 0 items in your json file. Please check it'
 		return
 
-	check_valid_leveldb_key(items[0])
-	print 'lalalalallalala'
+	main_key = check_valid_leveldb_key(items[0])
+	if main_key:
+		for item in items:
+			db.Put(str(item[main_key]), json.dumps(item))
+		print 'Update succeeded!'
 
-	
+
+def insert_key_value():
+	""" Insert a pair of key value to database.
+	"""
+	key = raw_input('Key:').strip()
+	value = raw_input('Value: ').strip()
+	if key and value:
+		db.Put(key, value)
+
 def check_valid_leveldb_key(obj):
-	print obj
 	who_as_key = raw_input('Whick key as the database key: ').strip()
-	if not (hasattr(obj, who_as_key)):
+	if not (obj[who_as_key]):
 		print 'Error: Can not found key ', who_as_key
 		check_valid_leveldb_key(obj)
+	else:
+		return who_as_key
 
 def main():
 	""" Main entry .
@@ -127,6 +141,7 @@ def main():
 		print '1: Get value by key.'
 		print '2: Select value from ... to ...'
 		print '3: Insert items from json.'
+		print '4: Insert a pair of key/value.'
 		print_cutoff_line_end()
 
 		opt = input('Please choose an operation: ')
@@ -140,6 +155,8 @@ def main():
 			iter_keys_values()
 		elif opt == 3:
 			insert_value_from_json()
+		elif opt == 4:
+			insert_key_value()
 		else:
 			print 'Wrong input!!'
 
